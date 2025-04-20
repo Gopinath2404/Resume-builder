@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Apply for a Mentor</title>
+    <link rel="stylesheet" href="mentor.css">
+    <style>
+        #studentDetailsForm {
+            display: none;
+            /* Initially hidden */
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        #studentDetailsForm label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        #studentDetailsForm input[type="text"],
+        #studentDetailsForm input[type="email"],
+        #studentDetailsForm textarea {
+            width: calc(100% - 12px);
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        #studentDetailsForm button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        
+        #studentDetailsForm button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        
+        .apply-button-container {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Available Mentors</h1>
+    <div id="mentorList">
+    </div>
+
+    <div id="studentDetailsForm">
+        <h2>Your Details</h2>
+        <form id="studentForm">
+            <input type="hidden" id="selectedMentorIndex" name="selectedMentorIndex">
+            <label for="studentName">Your Name:</label><br>
+            <input type="text" id="studentName" name="studentName" required><br><br>
+
+            <label for="studentEmail">Your Email:</label><br>
+            <input type="email" id="studentEmail" name="studentEmail" required><br><br>
+
+            <label for="studentMessage">Why do you want this mentor?</label><br>
+            <textarea id="studentMessage" name="studentMessage"></textarea><br><br>
+
+            <button type="submit">Submit Application</button>
+        </form>
+    </div>
+
+    <script>
+        let selectedMentorData = null; // To store the data of the mentor the student is applying to
+
+        function displayMentors() {
+            const mentorListDiv = document.getElementById('mentorList');
+            mentorListDiv.innerHTML = ''; // Clear previous content
+
+            const mentors = JSON.parse(localStorage.getItem('mentors')) || [];
+
+            if (mentors.length === 0) {
+                mentorListDiv.innerHTML = '<p>No mentors available yet.</p>';
+                return;
+            }
+
+            mentors.forEach((mentor, index) => {
+                const mentorCard = document.createElement('div');
+                mentorCard.classList.add('mentor-card'); // Assuming you have CSS for this
+
+                mentorCard.innerHTML = `
+                    <h3>${mentor.name}</h3>
+                    <p><strong>Expertise:</strong> ${mentor.expertise || 'N/A'}</p>
+                    <p><strong>Contact:</strong> ${mentor.contact || 'N/A'}</p>
+                    <p><strong>Description:</strong> ${mentor.description || 'N/A'}</p>
+                    <div class="apply-button-container">
+                        <button onclick="showStudentForm(${index})">Apply for this Mentor</button>
+                    </div>
+                `;
+                mentorListDiv.appendChild(mentorCard);
+            });
+        }
+
+        function showStudentForm(mentorIndex) {
+            const mentors = JSON.parse(localStorage.getItem('mentors')) || [];
+            if (mentorIndex >= 0 && mentorIndex < mentors.length) {
+                selectedMentorData = mentors[mentorIndex];
+                document.getElementById('selectedMentorIndex').value = mentorIndex;
+                document.getElementById('studentDetailsForm').style.display = 'block';
+                // Optionally, you could scroll to the form
+                document.getElementById('studentDetailsForm').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            } else {
+                alert('Error: Could not find the selected mentor.');
+            }
+        }
+
+        document.getElementById('studentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (!selectedMentorData) {
+                alert('Error: No mentor selected.');
+                return;
+            }
+
+            const studentName = document.getElementById('studentName').value;
+            const studentEmail = document.getElementById('studentEmail').value;
+            const studentMessage = document.getElementById('studentMessage').value;
+
+            const applicationData = {
+                mentorName: selectedMentorData.name,
+                mentorContact: selectedMentorData.contact,
+                studentName: studentName,
+                studentEmail: studentEmail,
+                studentMessage: studentMessage
+            };
+
+            fetch('/api/send-mentor-application', { // Replace with your actual back-end endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(applicationData),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Your application has been sent successfully!');
+                        document.getElementById('studentDetailsForm').style.display = 'none';
+                        document.getElementById('studentForm').reset();
+                        selectedMentorData = null;
+                    } else {
+                        alert('There was an error sending your application. Please try again later.');
+                        console.error('Error sending application:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert('An unexpected error occurred. Please try again later.');
+                });
+            // In a real application, you would now send this 'applicationData'
+            // to your server-side code, which would then send an email to the mentor
+            // (using 'selectedMentorData.contact') with the student's details.
+        });
+
+        // Load and display mentors when the page loads
+        displayMentors();
+    </script>
+</body>
+
+</html>

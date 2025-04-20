@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Become a Mentor</title>
+</head>
+
+<body>
+    <h1>Become a Mentor</h1>
+    <link rel="stylesheet" href="mentor form .css">
+    <form id="mentorForm">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="expertise">Area of Expertise:</label><br>
+        <input type="text" id="expertise" name="expertise"><br><br>
+
+        <label for="contact">Contact Information:</label><br>
+        <input type="email" id="contact" name="contact" required><br><br>
+
+        <label for="description">Brief Description:</label><br>
+        <textarea id="description" name="description"></textarea><br><br>
+
+        <button type="submit">Submit Mentor Application</button>
+    </form>
+
+    <script>
+        document.getElementById('mentorForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const mentorData = {};
+            formData.forEach((value, key) => {
+                mentorData[key] = value;
+            });
+
+            // In a real application, you would send this data to a server
+            // to be stored in a database. For this example, we'll just
+            // store it in local storage.
+            let mentors = localStorage.getItem('mentors');
+            mentors = mentors ? JSON.parse(mentors) : [];
+            mentors.push(mentorData);
+            localStorage.setItem('mentors', JSON.stringify(mentors));
+
+            alert('Thank you for your interest in becoming a mentor!');
+            this.reset(); // Clear the form
+        });
+    </script>
+</body>
+
+</html>

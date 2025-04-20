@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chatbot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #chatWindow {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+        }
+        
+        #chatInput {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .message {
+            margin-bottom: 10px;
+        }
+        
+        .message strong {
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Chat with Gemini 🤖</h2>
+        <div id="chatWindow"></div>
+        <div class="input-group">
+            <input type="text" id="chatInput" placeholder="Type your message here..." onkeydown="if(event.key==='Enter'){sendMessage();}">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function appendMessage(sender, text) {
+            const chatWindow = document.getElementById("chatWindow");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+            messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            chatWindow.appendChild(messageDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("chatInput");
+            const userText = input.value.trim();
+            if (!userText) return;
+
+            appendMessage("You", userText);
+            input.value = "";
+
+            fetch("http://localhost:5000/get_response", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        user_input: userText
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    appendMessage("Gemini", data.response);
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    appendMessage("Gemini", "Sorry, something went wrong.");
+                });
+        }
+    </script>
+</body>
+
+</html>

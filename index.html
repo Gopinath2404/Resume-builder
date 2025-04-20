@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumini's</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-image: url("image.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+            color: #d5b6b6;
+        }
+        
+        .role-container {
+            text-align: center;
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.138);
+            max-width: 450px;
+            width: 90%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .role-container:hover {
+            transform: scale(1.03);
+            box-shadow: 0 12px 30px rgba(169, 151, 151, 0.877);
+        }
+        
+        h2 {
+            margin-bottom: 40px;
+            color: #060b10fb;
+            font-size: 2.2em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        button {
+            padding: 18px 35px;
+            margin: 15px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(to right, #eda1e1, #c5d6c9);
+            color: white;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px hsla(240, 6%, 3%, 0.893)
+        }
+        
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="role-container">
+        <h2>Select Your Role</h2>
+
+        <button onclick="goToDashboard('Mentor')"> Admin Mentor</button>
+        <button onclick="goToDashboard('User')">User</button>
+
+
+
+    </div>
+
+    <script>
+        function goToDashboard(role) {
+            if (role === 'Admin Mentor') {
+                window.location.href = "admin login.html"; // Redirect to Admin login page
+            } else if (role === 'User') {
+                window.location.href = "user login.html"; // Redirect to User login page
+            }
+        }
+    </script>
+
+</body>
+
+</html>

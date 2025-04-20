@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Builder</title>
+    <link rel="stylesheet" href="resume.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+    <h1>Resume Builder</h1>
+    <form id="resume-form">
+        <label>Name: <input type="text" id="name" required></label><br>
+        <label>Email: <input type="email" id="email" required></label><br>
+        <label>Phone: <input type="text" id="phone" required></label><br>
+        <label>Address: <input type="text" id="address"></label><br>
+        <label>LinkedIn: <input type="text" id="linkedin"></label><br><br>
+
+        <label>Education:<br><textarea id="education" rows="3" cols="50" placeholder="Degree, Institution, Dates (one per line)"></textarea></label><br>
+        <label>Internship:<br><textarea id="internship" rows="3" cols="50" placeholder="Role, Company, Dates - Responsibilities (one per line)"></textarea></label><br>
+        <label>Projects:<br><textarea id="projects" rows="3" cols="50" placeholder="Project Name - Description/Technologies (one per line)"></textarea></label><br>
+        <label>Skills:<br><textarea id="skills" rows="2" cols="50" placeholder="Skill 1, Skill 2, Skill 3 (comma-separated)"></textarea></label><br>
+        <label>Achievements:<br><textarea id="achievements" rows="2" cols="50" placeholder="Achievement 1 (one per line)"></textarea></label><br>
+        <label>Certificates:<br><textarea id="certificate" rows="2" cols="50" placeholder="Certificate Name - Issuing Body (one per line)"></textarea></label><br><br>
+
+        <label>Upload Photo: <input type="file" id="photo" accept="image/*"></label><br><br>
+
+        <button type="button" onclick="generateAdvancedPDF()">Download Resume PDF</button>
+    </form>
+
+    <script>
+        async function generateAdvancedPDF() {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF();
+            const margin = 15;
+            let y = 20;
+            const lineHeight = 5;
+            const boldFont = "helvetica";
+            const normalFont = "helvetica";
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+
+            function checkAndAddPage(contentHeight) {
+                if (y + contentHeight > pageHeight - margin - 10) {
+                    doc.addPage();
+                    y = margin;
+                }
+            }
+
+            function addSectionTitle(title) {
+                doc.setFontSize(16);
+                doc.setFont(boldFont, "bold");
+                doc.setTextColor(0);
+                const titleHeight = 8;
+                checkAndAddPage(titleHeight + 6);
+                const titleY = y;
+                doc.text(title.toUpperCase(), margin, titleY);
+                doc.setLineWidth(0.3);
+                doc.line(margin, titleY + 1, margin + 40, titleY + 1);
+                y = titleY + 14;
+            }
+
+            function addBoxedBulletPoints(content) {
+                if (!content) return;
+                const items = content.split('\n').filter(item => item.trim() !== '');
+                let startY = y;
+                let totalHeight = 0;
+
+                items.forEach(item => {
+                    doc.setFontSize(10);
+                    doc.setFont(normalFont, "normal");
+                    const lines = doc.splitTextToSize(`• ${item.trim()}`, pageWidth - 2 * margin - 10);
+                    const itemHeight = lines.length * lineHeight + 2;
+                    totalHeight += itemHeight;
+                    checkAndAddPage(totalHeight + (items.indexOf(item) === 0 ? 0 : 2));
+                    lines.forEach(line => {
+                        doc.text(line, margin + 5, y);
+                        y += lineHeight;
+                    });
+                    y += 2;
+                });
+
+                doc.setDrawColor(0);
+                doc.setFillColor(255, 255, 255);
+                doc.rect(margin, startY - 2, pageWidth - 2 * margin, y - startY + 4, 'S');
+                y += 3;
+            }
+
+            function addBoxedText(text) {
+                doc.setFontSize(10);
+                doc.setFont(normalFont, "normal");
+                const lines = doc.splitTextToSize(text, pageWidth - 2 * margin - 10);
+                const textHeight = lines.length * lineHeight + 4;
+                checkAndAddPage(textHeight + 6);
+                const startY = y;
+                lines.forEach(line => {
+                    doc.text(line, margin + 5, y);
+                    y += lineHeight;
+                });
+                doc.setDrawColor(0);
+                doc.setFillColor(255, 255, 255);
+                doc.rect(margin, startY - 2, pageWidth - 2 * margin, y - startY + 4, 'S');
+                y += 8;
+            }
+
+            async function addHeader() {
+                let currentX = margin;
+                let headerY = margin;
+                const photoSize = 30;
+
+                if (photoFile) {
+                    const reader = new FileReader();
+                    try {
+                        await new Promise((resolve, reject) => {
+                            reader.onload = function(e) {
+                                const imgData = e.target.result;
+                                doc.addImage(imgData, "JPEG", currentX, headerY, photoSize, photoSize * 4 / 3);
+                                currentX += photoSize + 10;
+                                resolve();
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(photoFile);
+                        });
+                    } catch (error) {
+                        console.error("Error loading photo:", error);
+                        // Proceed without the photo
+                    }
+                }
+
+                doc.setFontSize(20);
+                doc.setFont(boldFont, "bold");
+                doc.text(name, currentX, headerY + 8);
+                doc.setFontSize(10);
+                doc.setFont(normalFont, "normal");
+                doc.text(email, currentX, headerY + 15);
+                doc.text(phone, currentX, headerY + 21);
+                if (linkedin) {
+                    doc.text(linkedin, currentX, headerY + 27);
+                }
+                y = headerY + 35;
+                y += 10;
+            }
+
+            async function addSections() {
+                addSectionTitle("Education");
+                addBoxedBulletPoints(education);
+
+                addSectionTitle("Internship");
+                addBoxedBulletPoints(internship);
+
+                addSectionTitle("Projects");
+                addBoxedBulletPoints(projects);
+
+                addSectionTitle("Skills");
+                addBoxedText(skills);
+
+                addSectionTitle("Achievements");
+                addBoxedBulletPoints(achievements);
+
+                addSectionTitle("Certificates");
+                addBoxedBulletPoints(certificate);
+            }
+
+            try {
+                await addHeader();
+                await addSections();
+                doc.save(`${name}_Resume.pdf`);
+            } catch (error) {
+                console.error("Error during PDF generation:", error);
+                alert("An error occurred while generating the PDF. Please check the browser's console for details.");
+            }
+        }
+    </script>
+</body>
+
+</html>
